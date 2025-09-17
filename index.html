@@ -152,7 +152,7 @@
         </button>
         <button onclick="generatePDF()" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm4 14a1 1 0 100-2 1 1 0 000 2zM6 5a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm4 14a1 1 0 100-2 1 1 0 000 2zM6 5a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
             </svg>
             Save as PDF
         </button>
@@ -377,7 +377,9 @@
                 updateSerialNumbers();
                 calculateTotals();
             } else {
-                alert("Cannot delete the last row.");
+                // In a real application, you might use a more user-friendly modal dialog.
+                // Since alert() is restricted, we can log to console or show a temporary message.
+                console.warn("Cannot delete the last row.");
             }
         }
 
@@ -390,7 +392,7 @@
         
         function addEventListeners(element) {
              element.querySelectorAll('[contenteditable="true"], .qty, .rate').forEach(el => {
-                el.addEventListener('input', calculateTotals);
+                 el.addEventListener('input', calculateTotals);
              });
         }
 
@@ -400,14 +402,19 @@
 
         function generatePDF() {
             const element = document.getElementById('invoice');
-            const originalClass = element.className;
             
+            // Create a clone of the invoice to manipulate without affecting the live view
+            const clone = element.cloneNode(true);
+
+            // Remove all elements with the 'no-print' class from the clone
+            clone.querySelectorAll('.no-print').forEach(el => el.remove());
+
             // Create a temporary container with PDF-specific styling
             const tempContainer = document.createElement('div');
             tempContainer.className = 'pdf-container';
-            tempContainer.innerHTML = element.innerHTML;
+            tempContainer.innerHTML = clone.innerHTML;
             
-            // Hide original element and add temp container
+            // Hide original element and add temp container to the body for rendering
             element.style.display = 'none';
             document.body.appendChild(tempContainer);
             

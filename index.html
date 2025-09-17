@@ -59,24 +59,62 @@
             width: 210mm;
             min-height: 297mm;
             margin: 0 auto;
-            padding: 15mm;
+            padding: 6mm;
             box-sizing: border-box;
             background: white;
             position: relative;
+            font-size: 13px !important;
+            line-height: 1.35 !important;
         }
         
+        .pdf-container * {
+            font-size: 13px !important;
+            line-height: 1.35 !important;
+        }
+        
+        .pdf-container h1 {
+            font-size: 24px !important;
+            margin-bottom: 4px !important;
+        }
+        
+        /* CHANGED: Only increased table fonts */
         .pdf-container table {
             width: 100% !important;
             table-layout: fixed;
+            font-size: 15px !important; /* INCREASED: from 12px to 15px */
+        }
+        
+        .pdf-container th,
+        .pdf-container td {
+            padding: 3px 5px !important; /* INCREASED: from 2px 4px to 3px 5px */
+            font-size: 15px !important; /* INCREASED: from 12px to 15px */
+            line-height: 1.3 !important; /* INCREASED: from 1.2 to 1.3 */
         }
         
         .pdf-container .overflow-x-auto {
             overflow: visible !important;
         }
         
+        .pdf-container .mb-2 { margin-bottom: 2px !important; }
+        .pdf-container .mb-4 { margin-bottom: 3px !important; }
+        .pdf-container .mt-4 { margin-top: 3px !important; }
+        .pdf-container .py-2 { padding-top: 2px !important; padding-bottom: 2px !important; }
+        .pdf-container .pt-2 { padding-top: 2px !important; }
+        .pdf-container .pb-2 { padding-bottom: 2px !important; }
+        
         /* Remove highlight backgrounds in PDF */
         .pdf-container [contenteditable="true"] {
             background-color: transparent !important;
+        }
+        
+        /* Compact spacing for PDF */
+        .pdf-container .totals-section {
+            margin-top: 2px !important;
+        }
+        
+        /* CHANGED: Only increased totals table font */
+        .pdf-container .totals-section table {
+            font-size: 14px !important; /* INCREASED: from 11px to 14px */
         }
         
         @media print {
@@ -229,7 +267,7 @@
                 </thead>
                 <tbody id="invoice-body">
                     <tr>
-                        <td class="text-center">1</td>
+                        <td class="text-center" contenteditable="true">1</td>
                         <td contenteditable="true">Rad 40 Blade</td>
                         <td contenteditable="true"></td>
                         <td contenteditable="true" class="qty text-right">3</td>
@@ -238,7 +276,7 @@
                         <td class="text-center no-print"><button onclick="deleteRow(this)" class="text-red-500">✖</button></td>
                     </tr>
                      <tr>
-                        <td class="text-center">2</td>
+                        <td class="text-center" contenteditable="true">2</td>
                         <td contenteditable="true">Rad 60 Blade</td>
                         <td contenteditable="true"></td>
                         <td contenteditable="true" class="qty text-right">1</td>
@@ -359,7 +397,7 @@
             const rowCount = invoiceBody.rows.length;
             const newRow = invoiceBody.insertRow();
             newRow.innerHTML = `
-                <td class="text-center">${rowCount + 1}</td>
+                <td class="text-center" contenteditable="true">${rowCount + 1}</td>
                 <td contenteditable="true"></td>
                 <td contenteditable="true"></td>
                 <td contenteditable="true" class="qty text-right">1</td>
@@ -374,20 +412,10 @@
             const row = btn.parentNode.parentNode;
             if (invoiceBody.rows.length > 1) {
                 row.parentNode.removeChild(row);
-                updateSerialNumbers();
                 calculateTotals();
             } else {
-                // In a real application, you might use a more user-friendly modal dialog.
-                // Since alert() is restricted, we can log to console or show a temporary message.
                 console.warn("Cannot delete the last row.");
             }
-        }
-
-        function updateSerialNumbers() {
-            const rows = invoiceBody.querySelectorAll('tr');
-            rows.forEach((row, index) => {
-                row.cells[0].textContent = index + 1;
-            });
         }
         
         function addEventListeners(element) {
@@ -418,24 +446,39 @@
             element.style.display = 'none';
             document.body.appendChild(tempContainer);
             
+            // Calculate optimal scaling based on content height
+            const contentHeight = tempContainer.scrollHeight;
+            const maxHeight = 297; // A4 height in mm
+            const availableHeight = maxHeight - 20; // Subtract margins
+            
+            // Adjust scale and canvas settings for better fitting
+            const scale = Math.min(2, (availableHeight * 3.78) / contentHeight); // Convert mm to pixels
+            
             const opt = {
-                margin: [10, 10, 10, 10],
+                margin: [5, 5, 5, 5], // Reduced margins
                 filename: `invoice_${document.getElementById('date').textContent.replace(/\//g, '-')}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
+                image: { type: 'jpeg', quality: 1.0 }, // CHANGED: Increased quality from 0.95 to 1.0
                 html2canvas: { 
-                    scale: 2,
+                    scale: 3, // CHANGED: Fixed high scale instead of dynamic for crisp text
                     useCORS: true,
                     width: 794, // A4 width in pixels at 96 DPI
-                    height: 1123, // A4 height in pixels at 96 DPI
+                    height: Math.max(1123, contentHeight), // Dynamic height
                     scrollX: 0,
-                    scrollY: 0
+                    scrollY: 0,
+                    letterRendering: true,
+                    allowTaint: true,
+                    dpi: 300 // CHANGED: Added high DPI for crisp text
                 },
                 jsPDF: { 
                     unit: 'mm', 
                     format: 'a4', 
-                    orientation: 'portrait'
+                    orientation: 'portrait',
+                    compress: false // CHANGED: Disabled compression to maintain quality
                 },
-                pagebreak: { mode: 'avoid-all' }
+                pagebreak: { 
+                    mode: 'avoid-all',
+                    avoid: ['tr', 'table']
+                }
             };
             
             html2pdf().from(tempContainer).set(opt).save().then(() => {
@@ -445,7 +488,9 @@
             }).catch(error => {
                 console.error('PDF generation failed:', error);
                 // Cleanup on error
-                document.body.removeChild(tempContainer);
+                if (document.body.contains(tempContainer)) {
+                    document.body.removeChild(tempContainer);
+                }
                 element.style.display = 'block';
             });
         }

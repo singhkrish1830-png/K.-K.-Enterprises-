@@ -3,525 +3,520 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>K. K. ENTERPRISES - Invoice Generator</title>
+    <title>Invoice Generator - K.K. ENTERPRISES</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Tinos&display=swap" rel="stylesheet">
+    <!-- jsPDF core library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- jsPDF autoTable plugin for creating tables -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Tinos', serif;
-            background-color: #e5e7eb; /* gray-200 */
-        }
-        .invoice-box {
             font-family: 'Inter', sans-serif;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
-            font-size: 14px;
-            line-height: 20px;
-            color: #333;
         }
-        [contenteditable]:focus {
-            outline: 1px dashed #9ca3af;
-            background-color: #fefce8;
-        }
-        
-        /* Transparent highlight for editable areas - web view only */
-        [contenteditable="true"] {
-            background-color: rgba(254, 240, 138, 0.1);
-            transition: background-color 0.2s;
-        }
-        [contenteditable="true"]:hover {
-            background-color: rgba(254, 240, 138, 0.2);
-        }
-        [contenteditable="true"]:focus {
-            background-color: #fefce8;
-        }
-        
-        table, th, td {
-            border: 1px solid #6b7280;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 5px 8px;
-            text-align: left;
-        }
-        .actions {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            padding: 20px 0;
-            gap: 1rem;
-        }
-        
-        /* PDF-specific styles */
-        .pdf-container {
-            width: 210mm;
-            min-height: 297mm;
-            margin: 0 auto;
-            padding: 6mm;
-            box-sizing: border-box;
-            background: white;
-            position: relative;
-            font-size: 13px !important;
-            line-height: 1.35 !important;
-        }
-        
-        .pdf-container * {
-            font-size: 13px !important;
-            line-height: 1.35 !important;
-        }
-        
-        .pdf-container h1 {
-            font-size: 24px !important;
-            margin-bottom: 4px !important;
-        }
-        
-        /* CHANGED: Only increased table fonts */
-        .pdf-container table {
-            width: 100% !important;
-            table-layout: fixed;
-            font-size: 15px !important; /* INCREASED: from 12px to 15px */
-        }
-        
-        .pdf-container th,
-        .pdf-container td {
-            padding: 3px 5px !important; /* INCREASED: from 2px 4px to 3px 5px */
-            font-size: 15px !important; /* INCREASED: from 12px to 15px */
-            line-height: 1.3 !important; /* INCREASED: from 1.2 to 1.3 */
-        }
-        
-        .pdf-container .overflow-x-auto {
-            overflow: visible !important;
-        }
-        
-        .pdf-container .mb-2 { margin-bottom: 2px !important; }
-        .pdf-container .mb-4 { margin-bottom: 3px !important; }
-        .pdf-container .mt-4 { margin-top: 3px !important; }
-        .pdf-container .py-2 { padding-top: 2px !important; padding-bottom: 2px !important; }
-        .pdf-container .pt-2 { padding-top: 2px !important; }
-        .pdf-container .pb-2 { padding-bottom: 2px !important; }
-        
-        /* Remove highlight backgrounds in PDF */
-        .pdf-container [contenteditable="true"] {
-            background-color: transparent !important;
-        }
-        
-        /* Compact spacing for PDF */
-        .pdf-container .totals-section {
-            margin-top: 2px !important;
-        }
-        
-        /* CHANGED: Only increased totals table font */
-        .pdf-container .totals-section table {
-            font-size: 14px !important; /* INCREASED: from 11px to 14px */
-        }
-        
         @media print {
-            body * {
-                visibility: hidden;
-            }
-            .invoice-box, .invoice-box * {
-                visibility: visible;
-            }
-            .invoice-box {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none; }
+            #invoice-container {
                 box-shadow: none;
                 margin: 0;
+                max-width: 100%;
                 border: none;
             }
-            .no-print {
-                display: none !important;
-            }
-            /* Remove highlight backgrounds in print */
-            [contenteditable="true"] {
-                background-color: transparent !important;
-            }
         }
-        
-        /* Better spacing for totals section */
-        .totals-section {
-            margin-top: 8px;
+        input, textarea {
+            border: 1px solid #d1d5db;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%;
         }
-        
-        /* Reduce excessive spacing when there are fewer items */
-        #invoice-body tr:last-child + tr {
-            border-bottom: 2px solid #6b7280;
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
         }
-        
-        @media (max-width: 768px) {
-            .invoice-box {
-                font-size: 12px;
-                line-height: 18px;
-            }
-            
-            .mobile-stack {
-                display: block !important;
-            }
-            
-            .mobile-stack > div {
-                width: 100% !important;
-                margin-bottom: 10px;
-                padding-right: 0 !important;
-                border-right: none !important;
-                border-bottom: 1px solid #6b7280;
-                padding-bottom: 10px;
-            }
-            
-            .mobile-stack > div:last-child {
-                border-bottom: none;
-                margin-bottom: 0;
-                padding-bottom: 0;
-            }
-            
-            .totals-section {
-                margin-top: 6px;
-            }
+        .details-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.5rem 1rem;
+            align-items: center;
+        }
+        .details-grid label {
+            font-weight: 500;
+            text-align: right;
+        }
+        /* Auto-resize textarea */
+        textarea.autoresize {
+            min-height: 42px; /* Same as input */
+            resize: vertical;
         }
     </style>
 </head>
-<body>
-    <div class="actions no-print">
-        <button onclick="addRow()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-            Add Item Row
-        </button>
-        <button onclick="generatePDF()" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm4 14a1 1 0 100-2 1 1 0 000 2zM6 5a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
-            </svg>
-            Save as PDF
-        </button>
+<body class="bg-gray-100 p-4 sm:p-6 md:p-8">
+    <div class="max-w-4xl mx-auto bg-white p-6 sm:p-8 md:p-10 rounded-2xl shadow-lg" id="invoice-container">
+        <!-- Header -->
+        <header class="mb-8">
+            <div class="flex justify-between items-start mb-2">
+                <p class="text-xs font-semibold text-gray-700">GSTIN: <span class="font-mono">09CGWPS1563C1ZX</span></p>
+                <h2 class="text-2xl font-bold text-gray-800">TAX INVOICE</h2>
+                <p class="text-xs font-semibold text-gray-700">M.: <span class="font-mono">9565898222</span></p>
+            </div>
+            <div class="text-center">
+                <h1 class="text-3xl font-bold text-red-500">K. K. ENTERPRISES</h1>
+                <p class="text-sm text-blue-800 font-semibold mt-1">Deals In: Operative Microscope, Micro Debrider, Endoscope, Surgical Camera, OPD Camera,<br> Light Source, Endoscopy Head light & Instruments</p>
+                <p class="text-sm text-gray-500 mt-2">D3/389, Sec -H, LDA Colony, Kanpur Road, Lucknow-226012, U.P. | E-mail: kkent3393@gmail.com</p>
+            </div>
+        </header>
+
+        <div class="w-full mb-6 pb-2 border-b-2 border-gray-400"></div>
+
+
+        <!-- Bill To and Invoice Details -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div class="p-4 rounded-lg details-grid md:border-r md:pr-8">
+                <label for="customer-name">Name:</label>
+                <input type="text" id="customer-name" placeholder="Customer Name">
+                <label for="customer-address">Add.:</label>
+                <textarea id="customer-address" placeholder="Customer Address" rows="3"></textarea>
+                <label for="customer-gstin">GSTIN:</label>
+                <input type="text" id="customer-gstin" placeholder="Customer GSTIN">
+                <label for="customer-state">State:</label>
+                 <div class="flex gap-2">
+                    <input type="text" id="customer-state" placeholder="State" class="w-2/3">
+                    <input type="text" id="customer-state-code" placeholder="Code" class="w-1/3">
+                </div>
+            </div>
+            <div class="p-4 rounded-lg details-grid">
+                <label for="invoice-no">No.:</label>
+                <input type="text" id="invoice-no">
+                <label for="invoice-date">Date:</label>
+                <input type="date" id="invoice-date">
+                <label for="order-no">Order No.:</label>
+                <input type="text" id="order-no">
+                <label for="eway-bill">E-Way Bill:</label>
+                <input type="text" id="eway-bill">
+            </div>
+        </section>
+
+        <!-- Items Table -->
+        <div class="w-full mb-4 border-b border-gray-300"></div>
+        <section class="mb-8">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 w-12">S.No.</th>
+                            <th scope="col" class="px-4 py-3">Description</th>
+                            <th scope="col" class="px-4 py-3">HSN/SAC</th>
+                            <th scope="col" class="px-4 py-3">Qty</th>
+                            <th scope="col" class="px-4 py-3">Rate</th>
+                            <th scope="col" class="px-4 py-3 text-right">Amount</th>
+                            <th scope="col" class="px-4 py-3 w-16 no-print">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoice-items">
+                        <!-- Rows will be added here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <button id="add-row-btn" class="mt-4 no-print bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm">+ Add Item</button>
+        </section>
+
+        <!-- Totals & Footer -->
+        <footer class="pt-6 border-t-2 border-gray-400">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                 <!-- Left side: Bank Details & Terms -->
+                <div>
+                     <div class="mb-6">
+                        <p id="amount-in-words" class="font-semibold text-gray-800">-</p>
+                     </div>
+                    <h4 class="font-semibold text-gray-800">Bank Details:</h4>
+                    <p class="text-sm text-gray-700 font-semibold">K.K. ENTERPRISES</p>
+                    <p class="text-sm text-gray-600">A/c No.: <span class="font-medium font-mono">215211100002643</span></p>
+                    <p class="text-sm text-gray-600">Bank: <span class="font-medium">UNION BANK OF INDIA, RAEBAREILY ROAD, LUCKNOW, U.P.</span></p>
+                    <p class="text-sm text-gray-600">IFSC Code: <span class="font-medium font-mono">UBIN0821527</span></p>
+                </div>
+
+                <!-- Right side: Totals -->
+                <div>
+                    <table class="w-full border border-gray-300">
+                        <tbody>
+                            <tr class="border-b border-gray-300">
+                                <td class="font-semibold text-gray-600 p-2">Total Amount</td>
+                                <td class="font-semibold text-gray-800 p-2 text-right" id="subtotal">Rs. 0.00</td>
+                            </tr>
+                            <tr class="border-b border-gray-300">
+                                <td class="font-semibold text-gray-600 p-2">Freight Charge</td>
+                                <td class="p-2 text-right"><input type="number" id="freight-charge" value="0.00" class="w-32 text-right border-0 focus:ring-0"></td>
+                            </tr>
+                             <tr class="border-b border-gray-300">
+                                <td class="font-semibold text-gray-600 p-2 flex items-center">Add CGST @ <input type="number" id="cgst-percent" value="2.5" class="w-16 text-right mx-1 border-0 focus:ring-0">%</td>
+                                <td class="font-semibold text-gray-800 p-2 text-right" id="cgst-amount">Rs. 0.00</td>
+                            </tr>
+                            <tr class="border-b border-gray-300">
+                                <td class="font-semibold text-gray-600 p-2 flex items-center">Add SGST @ <input type="number" id="sgst-percent" value="2.5" class="w-16 text-right mx-1 border-0 focus:ring-0">%</td>
+                                <td class="font-semibold text-gray-800 p-2 text-right" id="sgst-amount">Rs. 0.00</td>
+                            </tr>
+                            <tr class="border-b border-gray-300">
+                                <td class="font-semibold text-gray-600 p-2 flex items-center">Add IGST @ <input type="number" id="igst-percent" value="0" class="w-16 text-right mx-1 border-0 focus:ring-0">%</td>
+                                <td class="font-semibold text-gray-800 p-2 text-right" id="igst-amount">Rs. 0.00</td>
+                            </tr>
+                            <tr class="border-b border-gray-300">
+                                <td class="font-semibold text-gray-600 p-2">Round Off</td>
+                                <td class="p-2 text-right"><input type="number" id="round-off" value="0.00" step="0.01" class="w-32 text-right border-0 focus:ring-0"></td>
+                            </tr>
+                             <tr class="bg-gray-100">
+                                <td class="font-bold text-gray-900 p-2 text-lg">Grand Total</td>
+                                <td id="grand-total" class="font-bold text-blue-600 p-2 text-right text-lg">Rs. 0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+             <!-- Bottom Section -->
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h5 class="font-semibold text-gray-700">Terms & Conditions:</h5>
+                    <ol class="list-decimal list-inside text-xs text-gray-500 mt-1 space-y-1">
+                        <li>E.&.O.E.</li>
+                        <li>Goods once sold will not be taken back.</li>
+                        <li>All Disputes are subject to Lucknow Jurisdiction Only.</li>
+                    </ol>
+                </div>
+                <div class="text-center">
+                     <p class="font-semibold text-gray-700">For K. K. ENTERPRISES</p>
+                     <div class="mt-24 border-t border-gray-400 w-48 mx-auto"></div>
+                     <p class="text-sm text-gray-600">Authorised Signatory</p>
+                </div>
+            </div>
+        </footer>
     </div>
 
-    <div id="invoice" class="invoice-box max-w-4xl mx-auto p-4 md:p-6 bg-white my-4 md:my-8">
-        <!-- Top Corner Info -->
-        <div class="flex justify-between text-xs mb-2">
-            <div>
-                <p><strong>GSTIN:</strong> <span contenteditable="true">09CGWPS1563C1ZX</span></p>
-            </div>
-
-            <div>
-                <p><strong>TAX INVOICE</strong> <span style="visibility: hidden;">.......................</span></p>
-            </div>
-            
-            <div>
-                <p><strong>M.:</strong> <span contenteditable="true">9565898222</span></p>
-            </div>
-        </div>
-        
-        <!-- Header -->
-        <div class="text-center mb-2">
-            <h1 class="text-2xl md:text-3xl font-bold text-red-500" style="font-family: 'Tinos', serif;" contenteditable="true">K. K. ENTERPRISES</h1>
-            <div class="text-sm md:text-base text-[#1E3A8A] mt-1 px-4" contenteditable="true">
-                <p>Deals In : Operative Microscope, Micro Debrider, Endoscope, Surgical Camera,</p>
-                <p>OPD Camera, Light Source,Endoscopy Head light & Instruments</p>
-            </div>
-        </div>
-        
-        <div class="text-center text-xs mb-4">
-            <p contenteditable="true">D3/389, Sec -H, LDA Colony, Kanpur Road, Lucknow -226012, U.P. • E-mail: kkent3393@gmail.com</p>
-        </div>
-        
-        <!-- Customer and Invoice Details -->
-        <div class="border-t border-b border-gray-500 py-2">
-            <div class="flex flex-col md:flex-row mobile-stack">
-                <div class="w-full md:w-2/3 md:pr-2 md:border-r border-b md:border-b-0 border-gray-500 pb-2 md:pb-0 mb-2 md:mb-0">
-                     <div  class="flex items-start">
-                        <strong class="mr-2 mt-1">Name&nbsp&nbsp:</strong>
-                        <div contenteditable="true" class="flex-grow p-1"></div>
-                    </div>
-                    <div  class="flex items-start">
-                        <strong class="mr-2 mt-1">Add.&nbsp;&nbsp;&nbsp; :</strong>
-                        <div contenteditable="true" class="flex-grow p-1"></div>
-                    </div>
-                     <div  class="flex items-start">
-                        <strong class="mr-2 mt-1">GSTIN:</strong>
-                        <div contenteditable="true" class="flex-grow p-1"></div>
-                    </div>
-                    <div contenteditable="true" class="grid grid-cols-1 sm:grid-cols-3 gap-x-2">
-                        <div><strong>PAN :</strong> <span contenteditable="true" class="p-1 inline-block w-2/3"></span></div>
-                        <div><strong>State:</strong> <span contenteditable="true" class="p-1 inline-block w-2/3"></span></div>
-                        <div><strong>State Code:</strong><span contenteditable="true" class="p-1 inline-block w-1/2"></span></div>
-                    </div>
-                </div>
-                <div class="w-full md:w-1/3 md:pl-2">
-                    <div contenteditable="true" class="flex"><strong>No.:</strong><span contenteditable="true" class="ml-2 flex-grow p-1"></span></div>
-                    <div contenteditable="true" class="flex"><strong>Date:</strong><span id="date" contenteditable="true" class="ml-2 flex-grow p-1"></span></div>
-                    <div contenteditable="true" class="flex"><strong>Order No.:</strong><span contenteditable="true" class="ml-2 flex-grow p-1"></span></div>
-                    <div contenteditable="true" class="flex"><strong>E-Way Bill:</strong><span contenteditable="true" class="ml-2 flex-grow p-1"></span></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Items Table -->
-        <div class="overflow-x-auto">
-            <table class="w-full mt-4 text-sm min-w-[600px]">
-                <thead>
-                    <tr>
-                        <th class="w-12">S. No.</th>
-                        <th>DESCRIPTION</th>
-                        <th class="w-24">HSN/SAC Code</th>
-                        <th class="w-16">Qty.</th>
-                        <th class="w-24">Rate</th>
-                        <th class="w-32">Amount</th>
-                        <th class="w-12 no-print"></th>
-                    </tr>
-                </thead>
-                <tbody id="invoice-body">
-                    <tr>
-                        <td class="text-center" contenteditable="true">1</td>
-                        <td contenteditable="true">product</td>
-                        <td contenteditable="true"></td>
-                        <td contenteditable="true" class="qty text-right">1</td>
-                        <td contenteditable="true" class="rate text-right">0000.00</td>
-                        <td class="amount text-right">0000.00</td>
-                        <td class="text-center no-print"><button onclick="deleteRow(this)" class="text-red-500">✖</button></td>
-                    </tr>
-                     <!-- <tr>
-                        <td class="text-center" contenteditable="true">2</td>
-                        <td contenteditable="true">Rad 60 Blade</td>
-                        <td contenteditable="true"></td>
-                        <td contenteditable="true" class="qty text-right">1</td>
-                        <td contenteditable="true" class="rate text-right">6500.00</td>
-                        <td class="amount text-right">6500.00</td>
-                        <td class="text-center no-print"><button onclick="deleteRow(this)" class="text-red-500">✖</button></td>
-                    </tr> -->
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Totals -->
-        <div class="flex justify-end totals-section">
-             <div class="w-full sm:w-3/5 md:w-2/5">
-                 <table class="w-full text-sm">
-                     <tbody>
-                         <tr>
-                             <td class="font-bold border-r-0">Total Amount</td>
-                             <td id="subtotal" class="text-right">25400.00</td>
-                         </tr>
-                         <tr>
-                             <td>Freight Charge</td>
-                             <td contenteditable="true" id="freight" class="text-right">0.00</td>
-                         </tr>
-                         <tr>
-                             <td>Add CGST @ <span contenteditable="true" id="cgst-rate">2.5</span>%</td>
-                             <td id="cgst" class="text-right">2286.00</td>
-                         </tr>
-                          <tr>
-                             <td>Add SGST @ <span contenteditable="true" id="sgst-rate">2.5</span>%</td>
-                             <td id="sgst" class="text-right">2286.00</td>
-                         </tr>
-                         <tr>
-                             <td>Add IGST @ <span contenteditable="true" id="igst-rate">0</span>%</td>
-                             <td id="igst" class="text-right">0.00</td>
-                         </tr>
-                         <tr>
-                             <td>Round Off</td>
-                             <td contenteditable="true" id="round-off" class="text-right">0.00</td>
-                         </tr>
-                         <tr class="bg-gray-200 font-bold">
-                             <td>Grand Total</td>
-                             <td id="grand-total" class="text-right">29972.00</td>
-                         </tr>
-                     </tbody>
-                 </table>
-             </div>
-        </div>
-        
-        <!-- Footer -->
-        <div class="border-t border-gray-500 mt-4 pt-2 text-sm">
-             <p><strong>Total Invoice Amount in Words:</strong> <span id="amount-in-words">Twenty Nine Thousand Nine Hundred Seventy Two Rupees Only</span></p>
-             <div class="flex flex-col sm:flex-row mt-4">
-                 <div class="w-full sm:w-1/2 sm:pr-4 mb-4 sm:mb-0">
-                     <p class="font-bold" contenteditable="true">K. K. ENTERPRISES</p>
-                     <p><strong>A/c No.:</strong> <span contenteditable="true">215211100002643</span></p>
-                     <p contenteditable="true">UNION BANK OF INDIA, RAEBAREILY ROAD, LUCKNOW, U.P.</p>
-                     <p><strong>IFSC Code:</strong> <span contenteditable="true">UBIN0821527</span></p>
-                     <div class="mt-4 text-xs">
-                         <p class="font-bold">TERMS & CONDITIONS:</p>
-                         <ol class="list-decimal list-inside">
-                             <li contenteditable="true">E.&.O.E.</li>
-                             <li contenteditable="true">Goods once sold will not be taken back</li>
-                             <li contenteditable="true">All Disputes are subject to Lucknow Jurisdiction Only</li>
-                         </ol>
-                     </div>
-<style>
-.terms-conditions {
-    page-break-inside: avoid;
-    page-break-before: auto;
-}
-</style>
-                 </div>
-                 <div class="w-full sm:w-1/2 sm:text-right flex flex-col items-start sm:items-end">
-                     <div class="mt-24">
-                         <p class="border-t border-gray-400 pt-1" contenteditable="true">Authorised Signatory</p>
-                     </div>
-                 </div>
-             </div>
-        </div>
+    <!-- Action Buttons -->
+    <div class="max-w-4xl mx-auto mt-6 text-center no-print">
+        <button id="generate-pdf-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-md">
+            Generate PDF
+        </button>
     </div>
 
     <script>
-        // Set current date
-        const today = new Date();
-        document.getElementById('date').textContent = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
-
-        const invoiceBody = document.getElementById('invoice-body');
-        
-        function calculateTotals() {
-            let subtotal = 0;
-            const rows = invoiceBody.querySelectorAll('tr');
-            rows.forEach(row => {
-                const qty = parseFloat(row.querySelector('.qty').textContent.replace(/,/g, '')) || 0;
-                const rate = parseFloat(row.querySelector('.rate').textContent.replace(/,/g, '')) || 0;
-                const amount = qty * rate;
-                row.querySelector('.amount').textContent = amount.toFixed(2);
-                subtotal += amount;
-            });
-
-            const freight = parseFloat(document.getElementById('freight').textContent.replace(/,/g, '')) || 0;
-            const cgstRate = parseFloat(document.getElementById('cgst-rate').textContent.replace(/,/g, '')) || 0;
-            const sgstRate = parseFloat(document.getElementById('sgst-rate').textContent.replace(/,/g, '')) || 0;
-            const igstRate = parseFloat(document.getElementById('igst-rate').textContent.replace(/,/g, '')) || 0;
-            const roundOff = parseFloat(document.getElementById('round-off').textContent.replace(/,/g, '')) || 0;
-
-            const subtotalWithFreight = subtotal + freight;
+        document.addEventListener('DOMContentLoaded', () => {
+            const itemsTableBody = document.getElementById('invoice-items');
+            const addRowBtn = document.getElementById('add-row-btn');
+            const generatePdfBtn = document.getElementById('generate-pdf-btn');
             
-            const cgst = (subtotalWithFreight * cgstRate) / 100;
-            const sgst = (subtotalWithFreight * sgstRate) / 100;
-            const igst = (subtotalWithFreight * igstRate) / 100;
+            document.getElementById('invoice-date').valueAsDate = new Date();
 
-            const grandTotal = subtotalWithFreight + cgst + sgst + igst + roundOff;
-
-            document.getElementById('subtotal').textContent = subtotal.toFixed(2);
-            document.getElementById('cgst').textContent = cgst.toFixed(2);
-            document.getElementById('sgst').textContent = sgst.toFixed(2);
-            document.getElementById('igst').textContent = igst.toFixed(2);
-            document.getElementById('grand-total').textContent = grandTotal.toFixed(2);
-            document.getElementById('amount-in-words').textContent = numberToWords(Math.round(grandTotal)) + ' Rupees Only';
-        }
-
-        function addRow() {
-            const rowCount = invoiceBody.rows.length;
-            const newRow = invoiceBody.insertRow();
-            newRow.innerHTML = `
-                <td class="text-center" contenteditable="true">${rowCount + 1}</td>
-                <td contenteditable="true"></td>
-                <td contenteditable="true"></td>
-                <td contenteditable="true" class="qty text-right">1</td>
-                <td contenteditable="true" class="rate text-right">0.00</td>
-                <td class="amount text-right">0.00</td>
-                <td class="text-center no-print"><button onclick="deleteRow(this)" class="text-red-500">✖</button></td>
-            `;
-            addEventListeners(newRow);
-        }
-
-        function deleteRow(btn) {
-            const row = btn.parentNode.parentNode;
-            if (invoiceBody.rows.length > 1) {
-                row.parentNode.removeChild(row);
-                calculateTotals();
-            } else {
-                console.warn("Cannot delete the last row.");
-            }
-        }
-        
-        function addEventListeners(element) {
-             element.querySelectorAll('[contenteditable="true"], .qty, .rate').forEach(el => {
-                 el.addEventListener('input', calculateTotals);
-             });
-        }
-
-        // Add event listeners to initial elements
-        addEventListeners(document);
-        calculateTotals(); // Initial calculation on page load
-
-        function generatePDF() {
-            const element = document.getElementById('invoice');
+            const createRow = () => {
+                const rowCount = itemsTableBody.rows.length;
+                const row = itemsTableBody.insertRow(rowCount);
+                row.innerHTML = `
+                    <td class="px-4 py-2 font-medium text-gray-900 text-center">${rowCount + 1}</td>
+                    <td class="px-4 py-2"><textarea placeholder="Item Description" class="item-desc autoresize" rows="1"></textarea></td>
+                    <td class="px-4 py-2"><input type="text" placeholder="HSN" class="w-24 item-hsn"></td>
+                    <td class="px-4 py-2"><input type="number" value="1" min="0" class="w-16 item-qty text-right"></td>
+                    <td class="px-4 py-2"><input type="number" value="0.00" min="0" step="0.01" class="w-24 item-rate text-right"></td>
+                    <td class="px-4 py-2 font-medium text-right item-amount">Rs. 0.00</td>
+                    <td class="px-4 py-2 text-center no-print"><button class="delete-row-btn text-red-500 hover:text-red-700 font-bold">X</button></td>
+                `;
+                updateRowNumbers();
+                const textarea = row.querySelector('.autoresize');
+                textarea.addEventListener('input', () => {
+                    textarea.style.height = 'auto';
+                    textarea.style.height = textarea.scrollHeight + 'px';
+                });
+            };
             
-            // Create a clone of the invoice to manipulate without affecting the live view
-            const clone = element.cloneNode(true);
-
-            // Remove all elements with the 'no-print' class from the clone
-            clone.querySelectorAll('.no-print').forEach(el => el.remove());
-
-            // Create a temporary container with PDF-specific styling
-            const tempContainer = document.createElement('div');
-            tempContainer.className = 'pdf-container';
-            tempContainer.innerHTML = clone.innerHTML;
-            
-            // Hide original element and add temp container to the body for rendering
-            element.style.display = 'none';
-            document.body.appendChild(tempContainer);
-            
-            // Calculate optimal scaling based on content height
-            const contentHeight = tempContainer.scrollHeight;
-            const maxHeight = 297; // A4 height in mm
-            const availableHeight = maxHeight - 20; // Subtract margins
-            
-            // Adjust scale and canvas settings for better fitting
-            const scale = Math.min(2, (availableHeight * 3.78) / contentHeight); // Convert mm to pixels
-            
-            const opt = {
-                margin: [5, 5, 5, 5], // Reduced margins
-                filename: `invoice_${document.getElementById('date').textContent.replace(/\//g, '-')}.pdf`,
-                image: { type: 'jpeg', quality: 1.0 }, // CHANGED: Increased quality from 0.95 to 1.0
-                html2canvas: { 
-                    scale: 3, // CHANGED: Fixed high scale instead of dynamic for crisp text
-                    useCORS: true,
-                    width: 794, // A4 width in pixels at 96 DPI
-                    height: Math.max(1123, contentHeight), // Dynamic height
-                    scrollX: 0,
-                    scrollY: 0,
-                    letterRendering: true,
-                    allowTaint: true,
-                    dpi: 300 // CHANGED: Added high DPI for crisp text
-                },
-                jsPDF: { 
-                    unit: 'mm', 
-                    format: 'a4', 
-                    orientation: 'portrait',
-                    compress: false // CHANGED: Disabled compression to maintain quality
-                },
-                pagebreak: { 
-                    mode: 'avoid-all',
-                    avoid: ['tr', 'table']
+            const updateRowNumbers = () => {
+                const rows = itemsTableBody.getElementsByTagName('tr');
+                for (let i = 0; i < rows.length; i++) {
+                    rows[i].cells[0].textContent = i + 1;
                 }
             };
             
-            html2pdf().from(tempContainer).set(opt).save().then(() => {
-                // Cleanup: remove temp container and restore original element
-                document.body.removeChild(tempContainer);
-                element.style.display = 'block';
-            }).catch(error => {
-                console.error('PDF generation failed:', error);
-                // Cleanup on error
-                if (document.body.contains(tempContainer)) {
-                    document.body.removeChild(tempContainer);
-                }
-                element.style.display = 'block';
-            });
-        }
+            const numberToWords = (num) => {
+                const a = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+                const b = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+                
+                if ((num = num.toString()).length > 9) return 'overflow';
+                const n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+                if (!n) return '';
+                let str = '';
+                str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + ' crore ' : '';
+                str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + ' lakh ' : '';
+                str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + ' thousand ' : '';
+                str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + ' hundred ' : '';
+                str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) : '';
+                const finalStr = str.trim() + ' rupees only';
+                return finalStr.charAt(0).toUpperCase() + finalStr.slice(1);
+            };
 
-        // --- Number to Words Converter ---
-        function numberToWords(num) {
-            if (num === 0) return 'Zero';
-            const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-            const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-            if ((num = num.toString()).length > 9) return 'overflow';
-            const n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
-            if (!n) return '';
-            let str = '';
-            str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + ' Crore ' : '';
-            str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + ' Lakh ' : '';
-            str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + ' Thousand ' : '';
-            str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + ' Hundred ' : '';
-            str += (n[5] != 0) ? ((str != '' && !str.endsWith(' ')) ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) : '';
-            return str.trim();
-        }
+            const calculateTotals = () => {
+                let subtotal = 0;
+                const rows = itemsTableBody.getElementsByTagName('tr');
+                for (const row of rows) {
+                    const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                    const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+                    const amount = qty * rate;
+                    row.querySelector('.item-amount').textContent = `Rs. ${amount.toFixed(2)}`;
+                    subtotal += amount;
+                }
+
+                document.getElementById('subtotal').textContent = `Rs. ${subtotal.toFixed(2)}`;
+
+                const freight = parseFloat(document.getElementById('freight-charge').value) || 0;
+                const taxableAmount = subtotal + freight;
+
+                const cgstPercent = parseFloat(document.getElementById('cgst-percent').value) || 0;
+                const sgstPercent = parseFloat(document.getElementById('sgst-percent').value) || 0;
+                const igstPercent = parseFloat(document.getElementById('igst-percent').value) || 0;
+                const roundOff = parseFloat(document.getElementById('round-off').value) || 0;
+
+                const cgstAmount = taxableAmount * (cgstPercent / 100);
+                const sgstAmount = taxableAmount * (sgstPercent / 100);
+                const igstAmount = taxableAmount * (igstPercent / 100);
+
+                document.getElementById('cgst-amount').textContent = `Rs. ${cgstAmount.toFixed(2)}`;
+                document.getElementById('sgst-amount').textContent = `Rs. ${sgstAmount.toFixed(2)}`;
+                document.getElementById('igst-amount').textContent = `Rs. ${igstAmount.toFixed(2)}`;
+
+                const grandTotal = taxableAmount + cgstAmount + sgstAmount + igstAmount + roundOff;
+                document.getElementById('grand-total').textContent = `Rs. ${grandTotal.toFixed(2)}`;
+                
+                const grandTotalInWords = Math.round(grandTotal);
+                const amountWordsElement = document.getElementById('amount-in-words');
+                if (grandTotalInWords > 0) {
+                    amountWordsElement.innerHTML = `<strong>Total Invoice Amount in Words:</strong> ${numberToWords(grandTotalInWords)}`;
+                } else {
+                    amountWordsElement.textContent = '-';
+                }
+            };
+
+            addRowBtn.addEventListener('click', createRow);
+
+            itemsTableBody.addEventListener('click', (e) => {
+                if (e.target.classList.contains('delete-row-btn')) {
+                    e.target.closest('tr').remove();
+                    updateRowNumbers();
+                    calculateTotals();
+                }
+            });
+
+            document.getElementById('invoice-container').addEventListener('input', calculateTotals);
+
+            generatePdfBtn.addEventListener('click', () => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const pageMargin = 15;
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const contentWidth = pageWidth - (pageMargin * 2);
+                
+                doc.setFont("times");
+
+                // Header
+                doc.setFontSize(10);
+                doc.setFont("times", "bold");
+                doc.text("GSTIN: 09CGWPS1563C1ZX", pageMargin, 12);
+                doc.setFontSize(16);
+                doc.text("TAX INVOICE", pageWidth / 2, 12, { align: 'center' });
+                doc.setFontSize(10);
+                doc.text("M.: 9565898222", pageWidth - pageMargin, 12, { align: 'right' });
+
+                doc.setFontSize(22);
+                doc.setFont("times", "bold");
+                doc.setTextColor('#E53E3E'); // Light Red
+                doc.text("K. K. ENTERPRISES", pageWidth / 2, 22, { align: 'center' });
+                
+                doc.setTextColor('#2C5282'); // Navy Blue
+                doc.setFont("times", "bold");
+                doc.setFontSize(9);
+                const dealsInLine1 = "Deals In: Operative Microscope, Micro Debrider, Endoscope, Surgical Camera, OPD Camera,";
+                const dealsInLine2 = "Light Source, Endoscopy Head light & Instruments";
+                doc.text(dealsInLine1, pageWidth / 2, 27, { align: 'center' });
+                doc.text(dealsInLine2, pageWidth / 2, 31, { align: 'center' });
+
+                
+                doc.setTextColor(0, 0, 0); // Reset color to black
+                doc.setFont("times", "normal");
+                doc.text("D3/389, Sec -H, LDA Colony, Kanpur Road, Lucknow-226012, U.P. | E-mail: kkent3393@gmail.com", pageWidth / 2, 35, { align: 'center' });
+                
+                doc.setLineWidth(0.5);
+                doc.line(pageMargin, 39, pageWidth - pageMargin, 39);
+                
+                // --- Manual Layout for Customer/Invoice Details ---
+                let detailsStartY = 45;
+                doc.setFontSize(9);
+
+                // Draw vertical separator line
+                doc.setDrawColor(220, 220, 220);
+                doc.setLineWidth(0.2);
+                doc.line(pageWidth / 2, detailsStartY - 2, pageWidth / 2, detailsStartY + 25);
+                
+                let leftColX = pageMargin;
+                let currentY = detailsStartY;
+                const maxLabelWidth = doc.getTextWidth("GSTIN:"); // Find max width for alignment
+                const valueStartX = leftColX + maxLabelWidth + 2;
+
+                doc.setFont("times", "bold"); doc.text("Name:", leftColX, currentY);
+                doc.setFont("times", "normal"); doc.text(document.getElementById('customer-name').value, valueStartX, currentY);
+                currentY += 5;
+
+                doc.setFont("times", "bold"); doc.text("Add.:", leftColX, currentY);
+                doc.setFont("times", "normal");
+                const addressLines = doc.splitTextToSize(document.getElementById('customer-address').value, contentWidth / 2 - maxLabelWidth - 4);
+                doc.text(addressLines, valueStartX, currentY);
+                currentY += addressLines.length * 4;
+
+                doc.setFont("times", "bold"); doc.text("GSTIN:", leftColX, currentY);
+                doc.setFont("times", "normal"); doc.text(document.getElementById('customer-gstin').value, valueStartX, currentY);
+                currentY += 5;
+
+                doc.setFont("times", "bold"); doc.text("State:", leftColX, currentY);
+                doc.setFont("times", "normal"); doc.text(`${document.getElementById('customer-state').value} (Code: ${document.getElementById('customer-state-code').value})`, valueStartX, currentY);
+
+                let rightColX = pageWidth / 2 + 5;
+                let rightY = detailsStartY;
+                const rightMaxLabel = doc.getTextWidth("Order No.:");
+                const rightValueStart = rightColX + rightMaxLabel + 2;
+
+                doc.setFont("times", "bold"); doc.text("No.:", rightColX, rightY);
+                doc.setFont("times", "normal"); doc.text(document.getElementById('invoice-no').value, rightValueStart, rightY);
+                rightY += 5;
+
+                doc.setFont("times", "bold"); doc.text("Date:", rightColX, rightY);
+                doc.setFont("times", "normal"); doc.text(document.getElementById('invoice-date').value, rightValueStart, rightY);
+                rightY += 5;
+
+                doc.setFont("times", "bold"); doc.text("Order No.:", rightColX, rightY);
+                doc.setFont("times", "normal"); doc.text(document.getElementById('order-no').value, rightValueStart, rightY);
+                rightY += 5;
+
+                doc.setFont("times", "bold"); doc.text("E-Way Bill:", rightColX, rightY);
+                doc.setFont("times", "normal"); doc.text(document.getElementById('eway-bill').value, rightValueStart, rightY);
+                
+                const tableTopY = Math.max(currentY, rightY) + 8;
+                doc.setDrawColor(180, 180, 180); // Darker grey
+                doc.setLineWidth(0.3);
+                doc.line(pageMargin, tableTopY - 2, pageWidth - pageMargin, tableTopY - 2);
+
+
+                // Items Table
+                const tableRows = [];
+                const itemElements = itemsTableBody.querySelectorAll('tr');
+                itemElements.forEach((row, index) => {
+                    const rowData = [
+                        index + 1,
+                        row.querySelector('.item-desc').value,
+                        row.querySelector('.item-hsn').value,
+                        row.querySelector('.item-qty').value,
+                        parseFloat(row.querySelector('.item-rate').value).toFixed(2),
+                        row.querySelector('.item-amount').textContent.replace('Rs. ', '')
+                    ];
+                    tableRows.push(rowData);
+                });
+
+                doc.autoTable({
+                    head: [['S.No.', 'DESCRIPTION', 'HSN/SAC', 'Qty', 'Rate', 'Amount']],
+                    body: tableRows,
+                    startY: tableTopY, theme: 'grid',
+                    headStyles: { fillColor: [230, 230, 230], textColor: [0,0,0], font: 'times', fontStyle: 'bold', halign: 'center' },
+                    bodyStyles: { fontStyle: 'bold', textColor: [0,0,0] },
+                    styles: { fontSize: 9, font: 'times', lineColor: [0, 0, 0], lineWidth: 0.1 },
+                    columnStyles: {
+                        1: { halign: 'left' }, // Description
+                        4: { halign: 'right' }, // Rate
+                        5: { halign: 'right' } // Amount
+                    },
+                    margin: { left: pageMargin }
+                });
+
+                let itemsTableFinalY = doc.lastAutoTable.finalY;
+
+                // Footer Section
+                const footerStartY = itemsTableFinalY + 5;
+                const grandTotalValue = document.getElementById('grand-total').textContent;
+                
+                const totalsTableBody = [
+                    ['Total Amount', document.getElementById('subtotal').textContent.replace('Rs. ', '')],
+                    ['Freight Charge', (parseFloat(document.getElementById('freight-charge').value) || 0).toFixed(2)],
+                    [`Add CGST @ ${document.getElementById('cgst-percent').value}%`, document.getElementById('cgst-amount').textContent.replace('Rs. ', '')],
+                    [`Add SGST @ ${document.getElementById('sgst-percent').value}%`, document.getElementById('sgst-amount').textContent.replace('Rs. ', '')],
+                    [`Add IGST @ ${document.getElementById('igst-percent').value}%`, document.getElementById('igst-amount').textContent.replace('Rs. ', '')],
+                    ['Round Off', (parseFloat(document.getElementById('round-off').value) || 0).toFixed(2)],
+                    ['Grand Total', grandTotalValue.replace('Rs. ', '')],
+                ];
+
+                doc.autoTable({
+                    body: totalsTableBody,
+                    startY: footerStartY, theme: 'grid',
+                    bodyStyles: { textColor: [0,0,0] },
+                    styles: { fontSize: 9, font: 'times', lineColor: [0, 0, 0], lineWidth: 0.1 },
+                    columnStyles: { 0: { fontStyle: 'bold' }, 1: { halign: 'right' } },
+                    margin: { left: pageMargin + contentWidth / 2 }, tableWidth: contentWidth / 2,
+                    didParseCell: function(data) {
+                        if (data.row.index === totalsTableBody.length - 1) { // Grand Total Row
+                            data.cell.styles.fontStyle = 'bold';
+                            data.cell.styles.fillColor = '#F3F4F6'; // Light grey highlight
+                        }
+                    }
+                });
+                
+                const totalsFinalY = doc.lastAutoTable.finalY;
+
+                let leftColumnY = footerStartY;
+                doc.setFontSize(9);
+                
+                const amountWordsLabel = "Total Invoice Amount in Words:";
+                const grandTotalNum = Math.round(parseFloat(grandTotalValue.replace('Rs. ', ''))) || 0;
+                const amountWordsValue = numberToWords(grandTotalNum);
+
+                doc.setFont("times", "bold");
+                doc.text(amountWordsLabel, pageMargin, leftColumnY);
+                doc.setFont("times", "normal");
+                const valueText = doc.splitTextToSize(amountWordsValue, contentWidth / 2 - 5);
+                doc.text(valueText, pageMargin, leftColumnY + 5);
+                leftColumnY += (valueText.length * 4) + 10; // Added extra space for the blank line
+
+                doc.setFont("times", "bold");
+                doc.text('Bank Details:', pageMargin, leftColumnY);
+                leftColumnY += 5;
+                doc.text(`K.K. ENTERPRISES`, pageMargin, leftColumnY);
+                leftColumnY += 4;
+                doc.setFont("times", "normal");
+                doc.text(`A/c No.: 215211100002643`, pageMargin, leftColumnY);
+                leftColumnY += 4;
+                doc.text(`Bank: UNION BANK OF INDIA, RAEBAREILY ROAD,`, pageMargin, leftColumnY);
+                leftColumnY += 4;
+                doc.text(`LUCKNOW, U.P.`, pageMargin + doc.getTextWidth('Bank: '), leftColumnY);
+                leftColumnY += 4;
+                doc.text(`IFSC Code: UBIN0821527`, pageMargin, leftColumnY);
+
+                const bottomSectionY = Math.max(totalsFinalY, leftColumnY) + 10;
+
+                doc.setFont("times", "bold");
+                doc.text('Terms & Conditions:', pageMargin, bottomSectionY);
+                doc.setFont("times", "normal");
+                doc.text('1. E.&.O.E.', pageMargin, bottomSectionY + 4);
+                doc.text('2. Goods once sold will not be taken back.', pageMargin, bottomSectionY + 8);
+                doc.text('3. All Disputes are subject to Lucknow Jurisdiction Only.', pageMargin, bottomSectionY + 12);
+                
+                const signatureY = bottomSectionY + 5;
+                doc.setFont("times", "bold");
+                doc.text('For K. K. ENTERPRISES', pageWidth - pageMargin, signatureY, { align: 'right' });
+                doc.line(pageWidth - pageMargin - 60, signatureY + 30, pageWidth - pageMargin, signatureY + 30);
+                doc.setFont("times", "normal");
+                doc.text('Authorised Signatory', pageWidth - pageMargin, signatureY + 35, { align: 'right' });
+                
+                const invoiceNo = document.getElementById('invoice-no').value || 'invoice';
+                doc.save(`${invoiceNo}.pdf`);
+            });
+
+            // Add one row initially
+            createRow();
+            calculateTotals();
+        });
     </script>
 </body>
 </html>
+

@@ -355,7 +355,7 @@
                 
                 let leftColX = pageMargin;
                 let currentY = detailsStartY;
-                const maxLabelWidth = doc.getTextWidth("GSTIN:"); // Find max width for alignment
+                const maxLabelWidth = doc.getTextWidth("GSTIN:"); 
                 const valueStartX = leftColX + maxLabelWidth + 2;
 
                 doc.setFont("times", "bold"); doc.text("Name:", leftColX, currentY);
@@ -424,9 +424,12 @@
                     bodyStyles: { fontStyle: 'bold', textColor: [0,0,0] },
                     styles: { fontSize: 9, font: 'times', lineColor: [0, 0, 0], lineWidth: 0.1 },
                     columnStyles: {
-                        1: { halign: 'left' }, // Description
-                        4: { halign: 'right' }, // Rate
-                        5: { halign: 'right' } // Amount
+                        0: { halign: 'center' }, // S.No.
+                        1: { halign: 'left' },   // Description
+                        2: { halign: 'center' }, // HSN/SAC
+                        3: { halign: 'center' }, // Qty
+                        4: { halign: 'right' },  // Rate
+                        5: { halign: 'right' }   // Amount
                     },
                     margin: { left: pageMargin }
                 });

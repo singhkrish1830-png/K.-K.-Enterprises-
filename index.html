@@ -85,7 +85,7 @@
                 <input type="text" id="customer-state" placeholder="State">
             </div>
             <div class="p-4 rounded-lg details-grid">
-                <label for="invoice-no">No.:</label>
+                <label for="invoice-no">Invoice No.:</label>
                 <input type="text" id="invoice-no">
                 <label for="invoice-date">Date:</label>
                 <input type="date" id="invoice-date">
@@ -356,7 +356,7 @@
                 
                 let leftColX = pageMargin;
                 let currentY = detailsStartY;
-                const maxLabelWidth = doc.getTextWidth("GSTIN:"); 
+                const maxLabelWidth = doc.getTextWidth("State Code:"); 
                 const valueStartX = leftColX + maxLabelWidth + 2;
 
                 doc.setFont("times", "bold"); doc.text("Name:", leftColX, currentY);
@@ -375,15 +375,14 @@
 
                 doc.setFont("times", "bold"); doc.text("State:", leftColX, currentY);
                 doc.setFont("times", "normal"); 
-                const stateText = document.getElementById('customer-state').value;
-                doc.text(stateText, valueStartX, currentY);
+                doc.text(document.getElementById('customer-state').value, valueStartX, currentY);
                 
                 let rightColX = pageWidth / 2 + 5;
                 let rightY = detailsStartY;
                 const rightMaxLabel = doc.getTextWidth("State Code:");
                 const rightValueStart = rightColX + rightMaxLabel + 2;
 
-                doc.setFont("times", "bold"); doc.text("No.:", rightColX, rightY);
+                doc.setFont("times", "bold"); doc.text("Invoice No.:", rightColX, rightY);
                 doc.setFont("times", "normal"); doc.text(document.getElementById('invoice-no').value, rightValueStart, rightY);
                 rightY += 5;
 

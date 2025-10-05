@@ -82,10 +82,7 @@
                 <label for="customer-gstin">GSTIN:</label>
                 <input type="text" id="customer-gstin" placeholder="Customer GSTIN">
                 <label for="customer-state">State:</label>
-                 <div class="flex gap-2">
-                    <input type="text" id="customer-state" placeholder="State" class="w-2/3">
-                    <input type="text" id="customer-state-code" placeholder="Code" class="w-1/3">
-                </div>
+                <input type="text" id="customer-state" placeholder="State">
             </div>
             <div class="p-4 rounded-lg details-grid">
                 <label for="invoice-no">No.:</label>
@@ -94,6 +91,8 @@
                 <input type="date" id="invoice-date">
                 <label for="order-no">Order No.:</label>
                 <input type="text" id="order-no">
+                <label for="customer-state-code">State Code:</label>
+                <input type="text" id="customer-state-code" placeholder="Code">
                 <label for="eway-bill">E-Way Bill:</label>
                 <input type="text" id="eway-bill">
             </div>
@@ -110,8 +109,8 @@
                             <th scope="col" class="px-4 py-3">Description</th>
                             <th scope="col" class="px-4 py-3">HSN/SAC</th>
                             <th scope="col" class="px-4 py-3">Qty</th>
-                            <th scope="col" class="px-4 py-3">Rate</th>
-                            <th scope="col" class="px-4 py-3 text-right">Amount</th>
+                            <th scope="col" class="px-4 py-3">Rate(Rs.)</th>
+                            <th scope="col" class="px-4 py-3 text-right">Amount(Rs.)</th>
                             <th scope="col" class="px-4 py-3 w-16 no-print">Action</th>
                         </tr>
                     </thead>
@@ -143,31 +142,31 @@
                     <table class="w-full border border-gray-300">
                         <tbody>
                             <tr class="border-b border-gray-300">
-                                <td class="font-semibold text-gray-600 p-2">Total Amount</td>
+                                <td class="font-semibold text-gray-600 p-2">Total Amount(Rs.)</td>
                                 <td class="font-semibold text-gray-800 p-2 text-right" id="subtotal">Rs. 0.00</td>
                             </tr>
                             <tr class="border-b border-gray-300">
-                                <td class="font-semibold text-gray-600 p-2">Freight Charge</td>
+                                <td class="font-semibold text-gray-600 p-2">Freight Charge(Rs.)</td>
                                 <td class="p-2 text-right"><input type="number" id="freight-charge" value="0.00" class="w-32 text-right border-0 focus:ring-0"></td>
                             </tr>
                              <tr class="border-b border-gray-300">
-                                <td class="font-semibold text-gray-600 p-2 flex items-center">Add CGST @ <input type="number" id="cgst-percent" value="2.5" class="w-16 text-right mx-1 border-0 focus:ring-0">%</td>
+                                <td class="font-semibold text-gray-600 p-2 flex items-center">Add CGST @ <input type="number" id="cgst-percent" value="2.5" class="w-16 text-right mx-1 border-0 focus:ring-0">%(Rs.)</td>
                                 <td class="font-semibold text-gray-800 p-2 text-right" id="cgst-amount">Rs. 0.00</td>
                             </tr>
                             <tr class="border-b border-gray-300">
-                                <td class="font-semibold text-gray-600 p-2 flex items-center">Add SGST @ <input type="number" id="sgst-percent" value="2.5" class="w-16 text-right mx-1 border-0 focus:ring-0">%</td>
+                                <td class="font-semibold text-gray-600 p-2 flex items-center">Add SGST @ <input type="number" id="sgst-percent" value="2.5" class="w-16 text-right mx-1 border-0 focus:ring-0">%(Rs.)</td>
                                 <td class="font-semibold text-gray-800 p-2 text-right" id="sgst-amount">Rs. 0.00</td>
                             </tr>
                             <tr class="border-b border-gray-300">
-                                <td class="font-semibold text-gray-600 p-2 flex items-center">Add IGST @ <input type="number" id="igst-percent" value="0" class="w-16 text-right mx-1 border-0 focus:ring-0">%</td>
+                                <td class="font-semibold text-gray-600 p-2 flex items-center">Add IGST @ <input type="number" id="igst-percent" value="0" class="w-16 text-right mx-1 border-0 focus:ring-0">%(Rs.)</td>
                                 <td class="font-semibold text-gray-800 p-2 text-right" id="igst-amount">Rs. 0.00</td>
                             </tr>
                             <tr class="border-b border-gray-300">
-                                <td class="font-semibold text-gray-600 p-2">Round Off</td>
-                                <td class="p-2 text-right"><input type="number" id="round-off" value="0.00" step="0.01" class="w-32 text-right border-0 focus:ring-0"></td>
+                                <td class="font-semibold text-gray-600 p-2">Total GST(Rs.)</td>
+                                <td id="total-gst-amount" class="font-semibold text-gray-800 p-2 text-right">Rs. 0.00</td>
                             </tr>
                              <tr class="bg-gray-100">
-                                <td class="font-bold text-gray-900 p-2 text-lg">Grand Total</td>
+                                <td class="font-bold text-gray-900 p-2 text-lg">Grand Total(Rs.)</td>
                                 <td id="grand-total" class="font-bold text-blue-600 p-2 text-right text-lg">Rs. 0.00</td>
                             </tr>
                         </tbody>
@@ -186,7 +185,7 @@
                 </div>
                 <div class="text-center">
                      <p class="font-semibold text-gray-700">For K. K. ENTERPRISES</p>
-                     <div class="mt-24 border-t border-gray-400 w-48 mx-auto"></div>
+                     <div class="mt-20 border-t border-gray-400 w-48 mx-auto"></div>
                      <p class="text-sm text-gray-600">Authorised Signatory</p>
                 </div>
             </div>
@@ -214,8 +213,8 @@
                 row.innerHTML = `
                     <td class="px-4 py-2 font-medium text-gray-900 text-center">${rowCount + 1}</td>
                     <td class="px-4 py-2"><textarea placeholder="Item Description" class="item-desc autoresize" rows="1"></textarea></td>
-                    <td class="px-4 py-2"><input type="text" placeholder="HSN" class="w-24 item-hsn"></td>
-                    <td class="px-4 py-2"><input type="number" value="1" min="0" class="w-16 item-qty text-right"></td>
+                    <td class="px-4 py-2"><input type="text" placeholder="HSN" class="w-24 item-hsn text-center"></td>
+                    <td class="px-4 py-2"><input type="number" value="1" min="0" class="w-16 item-qty text-center"></td>
                     <td class="px-4 py-2"><input type="number" value="0.00" min="0" step="0.01" class="w-24 item-rate text-right"></td>
                     <td class="px-4 py-2 font-medium text-right item-amount">Rs. 0.00</td>
                     <td class="px-4 py-2 text-center no-print"><button class="delete-row-btn text-red-500 hover:text-red-700 font-bold">X</button></td>
@@ -271,7 +270,6 @@
                 const cgstPercent = parseFloat(document.getElementById('cgst-percent').value) || 0;
                 const sgstPercent = parseFloat(document.getElementById('sgst-percent').value) || 0;
                 const igstPercent = parseFloat(document.getElementById('igst-percent').value) || 0;
-                const roundOff = parseFloat(document.getElementById('round-off').value) || 0;
 
                 const cgstAmount = taxableAmount * (cgstPercent / 100);
                 const sgstAmount = taxableAmount * (sgstPercent / 100);
@@ -281,7 +279,10 @@
                 document.getElementById('sgst-amount').textContent = `Rs. ${sgstAmount.toFixed(2)}`;
                 document.getElementById('igst-amount').textContent = `Rs. ${igstAmount.toFixed(2)}`;
 
-                const grandTotal = taxableAmount + cgstAmount + sgstAmount + igstAmount + roundOff;
+                const totalGstAmount = cgstAmount + sgstAmount + igstAmount;
+                document.getElementById('total-gst-amount').textContent = `Rs. ${totalGstAmount.toFixed(2)}`;
+
+                const grandTotal = taxableAmount + totalGstAmount;
                 document.getElementById('grand-total').textContent = `Rs. ${grandTotal.toFixed(2)}`;
                 
                 const grandTotalInWords = Math.round(grandTotal);
@@ -349,9 +350,9 @@
                 doc.setFontSize(9);
 
                 // Draw vertical separator line
-                doc.setDrawColor(220, 220, 220);
-                doc.setLineWidth(0.2);
-                doc.line(pageWidth / 2, detailsStartY - 2, pageWidth / 2, detailsStartY + 25);
+                doc.setDrawColor(150, 150, 150); // Darker Grey
+                doc.setLineWidth(0.3);
+                doc.line(pageWidth / 2, detailsStartY - 2, pageWidth / 2, detailsStartY + 28);
                 
                 let leftColX = pageMargin;
                 let currentY = detailsStartY;
@@ -366,18 +367,20 @@
                 doc.setFont("times", "normal");
                 const addressLines = doc.splitTextToSize(document.getElementById('customer-address').value, contentWidth / 2 - maxLabelWidth - 4);
                 doc.text(addressLines, valueStartX, currentY);
-                currentY += addressLines.length * 4;
+                currentY += (addressLines.length * 4) + 1; // Add padding
 
                 doc.setFont("times", "bold"); doc.text("GSTIN:", leftColX, currentY);
                 doc.setFont("times", "normal"); doc.text(document.getElementById('customer-gstin').value, valueStartX, currentY);
                 currentY += 5;
 
                 doc.setFont("times", "bold"); doc.text("State:", leftColX, currentY);
-                doc.setFont("times", "normal"); doc.text(`${document.getElementById('customer-state').value} (Code: ${document.getElementById('customer-state-code').value})`, valueStartX, currentY);
-
+                doc.setFont("times", "normal"); 
+                const stateText = document.getElementById('customer-state').value;
+                doc.text(stateText, valueStartX, currentY);
+                
                 let rightColX = pageWidth / 2 + 5;
                 let rightY = detailsStartY;
-                const rightMaxLabel = doc.getTextWidth("Order No.:");
+                const rightMaxLabel = doc.getTextWidth("State Code:");
                 const rightValueStart = rightColX + rightMaxLabel + 2;
 
                 doc.setFont("times", "bold"); doc.text("No.:", rightColX, rightY);
@@ -390,6 +393,10 @@
 
                 doc.setFont("times", "bold"); doc.text("Order No.:", rightColX, rightY);
                 doc.setFont("times", "normal"); doc.text(document.getElementById('order-no').value, rightValueStart, rightY);
+                rightY += 5;
+                
+                doc.setFont("times", "bold"); doc.text("State Code:", rightColX, rightY);
+                doc.setFont("times", "normal"); doc.text(document.getElementById('customer-state-code').value, rightValueStart, rightY);
                 rightY += 5;
 
                 doc.setFont("times", "bold"); doc.text("E-Way Bill:", rightColX, rightY);
@@ -417,7 +424,7 @@
                 });
 
                 doc.autoTable({
-                    head: [['S.No.', 'DESCRIPTION', 'HSN/SAC', 'Qty', 'Rate', 'Amount']],
+                    head: [['S.No.', 'DESCRIPTION', 'HSN/SAC', 'Qty', 'Rate(Rs.)', 'Amount(Rs.)']],
                     body: tableRows,
                     startY: tableTopY, theme: 'grid',
                     headStyles: { fillColor: [230, 230, 230], textColor: [0,0,0], font: 'times', fontStyle: 'bold', halign: 'center' },
@@ -439,15 +446,16 @@
                 // Footer Section
                 const footerStartY = itemsTableFinalY + 5;
                 const grandTotalValue = document.getElementById('grand-total').textContent;
+                const totalGstValue = document.getElementById('total-gst-amount').textContent;
                 
                 const totalsTableBody = [
-                    ['Total Amount', document.getElementById('subtotal').textContent.replace('Rs. ', '')],
-                    ['Freight Charge', (parseFloat(document.getElementById('freight-charge').value) || 0).toFixed(2)],
-                    [`Add CGST @ ${document.getElementById('cgst-percent').value}%`, document.getElementById('cgst-amount').textContent.replace('Rs. ', '')],
-                    [`Add SGST @ ${document.getElementById('sgst-percent').value}%`, document.getElementById('sgst-amount').textContent.replace('Rs. ', '')],
-                    [`Add IGST @ ${document.getElementById('igst-percent').value}%`, document.getElementById('igst-amount').textContent.replace('Rs. ', '')],
-                    ['Round Off', (parseFloat(document.getElementById('round-off').value) || 0).toFixed(2)],
-                    ['Grand Total', grandTotalValue.replace('Rs. ', '')],
+                    ['Total Amount(Rs.)', document.getElementById('subtotal').textContent.replace('Rs. ', '')],
+                    ['Freight Charge(Rs.)', (parseFloat(document.getElementById('freight-charge').value) || 0).toFixed(2)],
+                    [`Add CGST @ ${document.getElementById('cgst-percent').value}%(Rs.)`, document.getElementById('cgst-amount').textContent.replace('Rs. ', '')],
+                    [`Add SGST @ ${document.getElementById('sgst-percent').value}%(Rs.)`, document.getElementById('sgst-amount').textContent.replace('Rs. ', '')],
+                    [`Add IGST @ ${document.getElementById('igst-percent').value}%(Rs.)`, document.getElementById('igst-amount').textContent.replace('Rs. ', '')],
+                    ['Total GST(Rs.)', totalGstValue.replace('Rs. ', '')],
+                    ['Grand Total(Rs.)', grandTotalValue.replace('Rs. ', '')],
                 ];
 
                 doc.autoTable({
@@ -507,9 +515,9 @@
                 const signatureY = bottomSectionY + 5;
                 doc.setFont("times", "bold");
                 doc.text('For K. K. ENTERPRISES', pageWidth - pageMargin, signatureY, { align: 'right' });
-                doc.line(pageWidth - pageMargin - 60, signatureY + 30, pageWidth - pageMargin, signatureY + 30);
+                doc.line(pageWidth - pageMargin - 60, signatureY + 25, pageWidth - pageMargin, signatureY + 25);
                 doc.setFont("times", "normal");
-                doc.text('Authorised Signatory', pageWidth - pageMargin, signatureY + 35, { align: 'right' });
+                doc.text('Authorised Signatory', pageWidth - pageMargin, signatureY + 30, { align: 'right' });
                 
                 const invoiceNo = document.getElementById('invoice-no').value || 'invoice';
                 doc.save(`${invoiceNo}.pdf`);
